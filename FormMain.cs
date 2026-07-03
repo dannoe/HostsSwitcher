@@ -13,7 +13,7 @@ namespace Barbar.HostsSwitcher
     {
         private readonly IHostProvider _hostsProvider;
         private readonly IAutoHostsSwitcher _autoSwitcher;
-        private System.Windows.Forms.Timer _networkChangeDebounceTimer;
+        private readonly Timer _networkChangeDebounceTimer;
 
         public FormMain()
         {
@@ -40,7 +40,7 @@ namespace Barbar.HostsSwitcher
                 quickSwitchToolStripMenuItem.DropDownItems.Add(host);
             }
 
-            Text = string.Format("Hosts Switcher - v.{0}", typeof(FormMain).Assembly.GetName().Version);
+            Text = $"Hosts Switcher - v.{typeof(FormMain).Assembly.GetName().Version}";
 
             NetworkChange.NetworkAddressChanged += OnNetworkAddressChanged;
             NetworkChange.NetworkAvailabilityChanged += OnNetworkAvailabilityChanged;
