@@ -12,4 +12,15 @@
   <ItemGroup>
     <Content Include="network.ico" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="TaskScheduler" Version="2.12.2" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="EXAMPLE-hosts-home.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="EXAMPLE-hosts-office.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

@@ -5,6 +5,7 @@ using System.Runtime.Versioning;
 using System.Windows.Forms;
 using Barbar.HostsSwitcher.Provider;
 using Barbar.HostsSwitcher.Network;
+using Barbar.HostsSwitcher.Utilities;
 
 namespace Barbar.HostsSwitcher
 {
@@ -15,7 +16,7 @@ namespace Barbar.HostsSwitcher
         private readonly IAutoHostsSwitcher _autoSwitcher;
         private readonly Timer _networkChangeDebounceTimer;
 
-        public FormMain()
+        public FormMain(bool startMinimized = false)
         {
             InitializeComponent();
 
@@ -46,6 +47,16 @@ namespace Barbar.HostsSwitcher
             NetworkChange.NetworkAvailabilityChanged += OnNetworkAvailabilityChanged;
 
             PerformAutoSwitch();
+
+            // Update autostart UI to reflect current state
+            UpdateAutostartUI();
+
+            // Handle minimized startup (e.g., from autostart)
+            if (startMinimized)
+            {
+                WindowState = FormWindowState.Minimized;
+                Visible = false;
+            }
         }
 
         private void quickSwitchToolStripMenuItem_DropDownItemClicked(object sender, ToolStripItemClickedEventArgs e)
@@ -156,6 +167,11 @@ namespace Barbar.HostsSwitcher
             {
                 _hostsProvider.OpenFolder();
             }
+
+            if (e.ClickedItem == btnAutostart)
+            {
+                ToggleAutostart();
+            }
         }
 
         private void UseAsHosts(string selectedItem)
@@ -261,6 +277,74 @@ namespace Barbar.HostsSwitcher
             {
                 PerformAutoSwitch();
             }
+        }
+
+        private void UpdateAutostartUI()
+        {
+            bool isEnabled = AutostartManager.IsEnabled();
+            if (menuStripAutostart != null)
+            {
+                menuStripAutostart.Checked = isEnabled;
+            }
+            if (btnAutostart != null)
+            {
+                btnAutostart.Checked = isEnabled;
+            }
+        }
+
+        private void ToggleAutostart()
+        {
+            bool currentState = AutostartManager.IsEnabled();
+            bool success = false;
+
+            if (currentState)
+            {
+                // Disable autostart
+                success = AutostartManager.Disable();
+                if (success)
+                {
+                    LogInfo("Autostart disabled\r\n");
+                }
+                else
+                {
+                    MessageBox.Show("Failed to disable autostart. Please check Task Scheduler permissions.", 
+                        "Autostart Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    // Revert UI state if operation failed
+                    if (menuStripAutostart != null)
+                    {
+                        menuStripAutostart.Checked = true;
+                    }
+                    return;
+                }
+            }
+            else
+            {
+                // Enable autostart
+                success = AutostartManager.Enable(Application.ExecutablePath);
+                if (success)
+                {
+                    LogInfo("Autostart enabled\r\n");
+                }
+                else
+                {
+                    MessageBox.Show("Failed to enable autostart. Please check Task Scheduler permissions.", 
+                        "Autostart Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    // Revert UI state if operation failed
+                    if (menuStripAutostart != null)
+                    {
+                        menuStripAutostart.Checked = false;
+                    }
+                    return;
+                }
+            }
+
+            // Update UI to reflect new state
+            UpdateAutostartUI();
+        }
+
+        private void menuStripAutostart_Click(object sender, EventArgs e)
+        {
+            ToggleAutostart();
         }
     }
 }

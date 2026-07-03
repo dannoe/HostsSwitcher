@@ -31,11 +31,14 @@
             this.btnDelete = new System.Windows.Forms.ToolStripButton();
             this.btnViewEdit = new System.Windows.Forms.ToolStripButton();
             this.btnOpenFolder = new System.Windows.Forms.ToolStripButton();
+            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
+            this.btnAutostart = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.btnExit = new System.Windows.Forms.ToolStripButton();
             this.notifyIcon = new System.Windows.Forms.NotifyIcon(this.components);
             this.menuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.menuStripShow = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuStripAutostart = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStripExit = new System.Windows.Forms.ToolStripMenuItem();
             this.panContent = new System.Windows.Forms.Panel();
             this.lblHosts = new System.Windows.Forms.Label();
@@ -63,6 +66,8 @@
             this.btnDelete,
             this.btnViewEdit,
             this.btnOpenFolder,
+            this.toolStripSeparator2,
+            this.btnAutostart,
             this.toolStripSeparator1,
             this.btnExit});
             this.toolStrip.Location = new System.Drawing.Point(3, 0);
@@ -117,6 +122,21 @@
             this.btnOpenFolder.Size = new System.Drawing.Size(109, 17);
             this.btnOpenFolder.Text = "&Open Folder";
             // 
+            // toolStripSeparator2
+            // 
+            this.toolStripSeparator2.Name = "toolStripSeparator2";
+            this.toolStripSeparator2.Size = new System.Drawing.Size(109, 6);
+            // 
+            // btnAutostart
+            // 
+            this.btnAutostart.CheckOnClick = false;
+            this.btnAutostart.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.btnAutostart.Image = ((System.Drawing.Image)(resources.GetObject("btnAutostart.Image")));
+            this.btnAutostart.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnAutostart.Name = "btnAutostart";
+            this.btnAutostart.Size = new System.Drawing.Size(109, 17);
+            this.btnAutostart.Text = "&Autostart";
+            // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
@@ -143,10 +163,11 @@
             // 
             this.menuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.menuStripShow,
-            this.menuStripExit,
-            this.quickSwitchToolStripMenuItem});
+            this.menuStripAutostart,
+            this.quickSwitchToolStripMenuItem,
+            this.menuStripExit});
             this.menuStrip.Name = "menuStrip";
-            this.menuStrip.Size = new System.Drawing.Size(153, 92);
+            this.menuStrip.Size = new System.Drawing.Size(153, 114);
             // 
             // menuStripShow
             // 
@@ -154,6 +175,14 @@
             this.menuStripShow.Size = new System.Drawing.Size(152, 22);
             this.menuStripShow.Text = "&Show";
             this.menuStripShow.Click += new System.EventHandler(this.menuStripShow_Click);
+            // 
+            // menuStripAutostart
+            // 
+            this.menuStripAutostart.CheckOnClick = true;
+            this.menuStripAutostart.Name = "menuStripAutostart";
+            this.menuStripAutostart.Size = new System.Drawing.Size(152, 22);
+            this.menuStripAutostart.Text = "&Autostart";
+            this.menuStripAutostart.Click += new System.EventHandler(this.menuStripAutostart_Click);
             // 
             // menuStripExit
             // 
@@ -286,6 +315,8 @@
     private System.Windows.Forms.ToolStripButton btnDelete;
     private System.Windows.Forms.ToolStripButton btnViewEdit;
     private System.Windows.Forms.ToolStripButton btnOpenFolder;
+    private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
+    private System.Windows.Forms.ToolStripButton btnAutostart;
     private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
     private System.Windows.Forms.ToolStripButton btnExit;
     private System.Windows.Forms.NotifyIcon notifyIcon;
@@ -296,8 +327,9 @@
     private System.Windows.Forms.TextBox txtLog;
     private System.Windows.Forms.Panel panel1;
     private System.Windows.Forms.ContextMenuStrip menuStrip;
-    private System.Windows.Forms.ToolStripMenuItem menuStripExit;
     private System.Windows.Forms.ToolStripMenuItem menuStripShow;
+    private System.Windows.Forms.ToolStripMenuItem menuStripAutostart;
+    private System.Windows.Forms.ToolStripMenuItem menuStripExit;
     private System.Windows.Forms.Label lblHosts;
     private System.Windows.Forms.Label lblUsing;
     private System.Windows.Forms.ToolStripMenuItem quickSwitchToolStripMenuItem;

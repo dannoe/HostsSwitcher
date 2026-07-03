@@ -9,10 +9,24 @@ namespace Barbar.HostsSwitcher
     {
         [SupportedOSPlatform("windows")]
         [STAThread]
-        static void Main()
+        static void Main(string[] args)
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
+
+            // Check if the app should start minimized (e.g., launched from autostart)
+            bool startMinimized = false;
+            if (args != null && args.Length > 0)
+            {
+                foreach (var arg in args)
+                {
+                    if (string.Equals(arg, "/minimized", StringComparison.OrdinalIgnoreCase))
+                    {
+                        startMinimized = true;
+                        break;
+                    }
+                }
+            }
 
             bool createdNew = false;
             Mutex mutex = null;
@@ -33,7 +47,7 @@ namespace Barbar.HostsSwitcher
 
             try
             {
-                Application.Run(new FormMain());
+                Application.Run(new FormMain(startMinimized));
             }
             finally
             {
