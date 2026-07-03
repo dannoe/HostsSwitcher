@@ -9,8 +9,16 @@
   <PropertyGroup>
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
+  <!-- Deterministic build settings for CI/CD -->
+  <PropertyGroup Condition="'$(ContinuousIntegrationBuild)' == 'true'">
+    <Deterministic>true</Deterministic>
+    <DeterministicSourcePaths>true</DeterministicSourcePaths>
+  </PropertyGroup>
   <ItemGroup>
     <Content Include="network.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include=".github\workflows\build.yml" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="TaskScheduler" Version="2.12.2" />
