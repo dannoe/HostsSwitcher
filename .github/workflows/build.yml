@@ -1,0 +1,269 @@
+name: Build and Release
+
+on:
+  push:
+    branches:
+      - master
+      - develop
+  pull_request:
+    branches:
+      - master
+      - develop
+
+concurrency:
+  group: build-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_VERSION: 10.0.x
+  PROJECT_PATH: HostsSwitcher.csproj
+  RUNTIME: win-x64
+  CONFIGURATION: Release
+
+jobs:
+  validate:
+    name: Validate Pull Request
+    if: github.event_name == 'pull_request'
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Install Nerdbank.GitVersioning
+        run: dotnet tool install --global nbgv --version 3.10.85
+
+      - name: Set version variables
+        shell: pwsh
+        run: |
+          nbgv cloud
+          $version = nbgv get-version -v Version
+          $simpleVersion = nbgv get-version -v SimpleVersion
+          $assemblyVersion = nbgv get-version -v AssemblyVersion
+
+          "VERSION=$version" >> $env:GITHUB_ENV
+          "SIMPLE_VERSION=$simpleVersion" >> $env:GITHUB_ENV
+          "ASSEMBLY_VERSION=$assemblyVersion" >> $env:GITHUB_ENV
+
+      - name: Restore dependencies
+        run: >
+          dotnet restore ${{ env.PROJECT_PATH }}
+          --runtime ${{ env.RUNTIME }}
+
+      - name: Build
+        run: >
+          dotnet build ${{ env.PROJECT_PATH }}
+          --configuration ${{ env.CONFIGURATION }}
+          --no-restore
+          --runtime ${{ env.RUNTIME }}
+          -p:ContinuousIntegrationBuild=true
+          -p:Deterministic=true
+          -p:DeterministicSourcePaths=true
+
+      - name: Publish self-contained
+        run: >
+          dotnet publish ${{ env.PROJECT_PATH }}
+          --configuration ${{ env.CONFIGURATION }}
+          --self-contained true
+          --runtime ${{ env.RUNTIME }}
+          --output "${{ github.workspace }}\publish\${{ env.RUNTIME }}"
+          -p:ContinuousIntegrationBuild=true
+          -p:Deterministic=true
+          -p:DeterministicSourcePaths=true
+          -p:PublishSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+
+      - name: Create ZIP artifact
+        shell: pwsh
+        run: |
+          $artifactName = "HostsSwitcher-${{ env.RUNTIME }}-v${{ env.SIMPLE_VERSION }}.zip"
+          Compress-Archive -Path "${{ github.workspace }}\publish\${{ env.RUNTIME }}\*" -DestinationPath $artifactName -Force
+          "ARTIFACT_NAME=$artifactName" >> $env:GITHUB_ENV
+
+      - name: Upload validation artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: HostsSwitcher-${{ env.RUNTIME }}-v${{ env.SIMPLE_VERSION }}
+          path: ${{ env.ARTIFACT_NAME }}
+          retention-days: 30
+
+  release_master:
+    name: Release Master Build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    runs-on: windows-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Install Nerdbank.GitVersioning
+        run: dotnet tool install --global nbgv --version 3.10.85
+
+      - name: Set version variables
+        shell: pwsh
+        run: |
+          nbgv cloud
+          $version = nbgv get-version -v Version
+          $simpleVersion = nbgv get-version -v SimpleVersion
+          $assemblyVersion = nbgv get-version -v AssemblyVersion
+
+          "VERSION=$version" >> $env:GITHUB_ENV
+          "SIMPLE_VERSION=$simpleVersion" >> $env:GITHUB_ENV
+          "ASSEMBLY_VERSION=$assemblyVersion" >> $env:GITHUB_ENV
+
+      - name: Restore dependencies
+        run: >
+          dotnet restore ${{ env.PROJECT_PATH }}
+          --runtime ${{ env.RUNTIME }}
+
+      - name: Build
+        run: >
+          dotnet build ${{ env.PROJECT_PATH }}
+          --configuration ${{ env.CONFIGURATION }}
+          --no-restore
+          --runtime ${{ env.RUNTIME }}
+          -p:ContinuousIntegrationBuild=true
+          -p:Deterministic=true
+          -p:DeterministicSourcePaths=true
+
+      - name: Publish self-contained
+        run: >
+          dotnet publish ${{ env.PROJECT_PATH }}
+          --configuration ${{ env.CONFIGURATION }}
+          --self-contained true
+          --runtime ${{ env.RUNTIME }}
+          --output "${{ github.workspace }}\publish\${{ env.RUNTIME }}"
+          -p:ContinuousIntegrationBuild=true
+          -p:Deterministic=true
+          -p:DeterministicSourcePaths=true
+          -p:PublishSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+
+      - name: Create ZIP artifact
+        shell: pwsh
+        run: |
+          $artifactName = "HostsSwitcher-${{ env.RUNTIME }}-v${{ env.SIMPLE_VERSION }}.zip"
+          Compress-Archive -Path "${{ github.workspace }}\publish\${{ env.RUNTIME }}\*" -DestinationPath $artifactName -Force
+          "ARTIFACT_NAME=$artifactName" >> $env:GITHUB_ENV
+
+      - name: Upload release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: HostsSwitcher-${{ env.RUNTIME }}-v${{ env.SIMPLE_VERSION }}
+          path: ${{ env.ARTIFACT_NAME }}
+          retention-days: 90
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.SIMPLE_VERSION }}
+          name: Release v${{ env.SIMPLE_VERSION }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          files: ${{ env.ARTIFACT_NAME }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  release_develop:
+    name: Release Develop Preview
+    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+    runs-on: windows-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Install Nerdbank.GitVersioning
+        run: dotnet tool install --global nbgv --version 3.10.85
+
+      - name: Set version variables
+        shell: pwsh
+        run: |
+          nbgv cloud
+          $version = nbgv get-version -v Version
+          $simpleVersion = nbgv get-version -v SimpleVersion
+          $assemblyVersion = nbgv get-version -v AssemblyVersion
+
+          "VERSION=$version" >> $env:GITHUB_ENV
+          "SIMPLE_VERSION=$simpleVersion" >> $env:GITHUB_ENV
+          "ASSEMBLY_VERSION=$assemblyVersion" >> $env:GITHUB_ENV
+
+      - name: Restore dependencies
+        run: >
+          dotnet restore ${{ env.PROJECT_PATH }}
+          --runtime ${{ env.RUNTIME }}
+
+      - name: Build
+        run: >
+          dotnet build ${{ env.PROJECT_PATH }}
+          --configuration ${{ env.CONFIGURATION }}
+          --no-restore
+          --runtime ${{ env.RUNTIME }}
+          -p:ContinuousIntegrationBuild=true
+          -p:Deterministic=true
+          -p:DeterministicSourcePaths=true
+
+      - name: Publish self-contained
+        run: >
+          dotnet publish ${{ env.PROJECT_PATH }}
+          --configuration ${{ env.CONFIGURATION }}
+          --self-contained true
+          --runtime ${{ env.RUNTIME }}
+          --output "${{ github.workspace }}\publish\${{ env.RUNTIME }}"
+          -p:ContinuousIntegrationBuild=true
+          -p:Deterministic=true
+          -p:DeterministicSourcePaths=true
+          -p:PublishSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+
+      - name: Create ZIP artifact
+        shell: pwsh
+        run: |
+          $artifactName = "HostsSwitcher-${{ env.RUNTIME }}-v${{ env.VERSION }}.zip"
+          Compress-Archive -Path "${{ github.workspace }}\publish\${{ env.RUNTIME }}\*" -DestinationPath $artifactName -Force
+          "ARTIFACT_NAME=$artifactName" >> $env:GITHUB_ENV
+
+      - name: Upload preview artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: HostsSwitcher-${{ env.RUNTIME }}-v${{ env.VERSION }}
+          path: ${{ env.ARTIFACT_NAME }}
+          retention-days: 90
+
+      - name: Create GitHub pre-release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.VERSION }}
+          name: Preview v${{ env.VERSION }}
+          draft: false
+          prerelease: true
+          generate_release_notes: true
+          files: ${{ env.ARTIFACT_NAME }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
