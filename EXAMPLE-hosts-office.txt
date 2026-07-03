@@ -1,0 +1,12 @@
+# HostsSwitcher: gateway=10.0.0.1
+# HostsSwitcher: gateway=172.16.0.1
+# Sample hosts profile for office network
+# This profile will automatically activate when connected to networks with gateway 10.0.0.1 or 172.16.0.1
+
+127.0.0.1       localhost
+::1             localhost
+
+# Office development servers
+10.1.2.100      dev.office.local
+10.1.2.101      api.office.local
+10.1.2.102      db.office.local
