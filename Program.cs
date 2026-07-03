@@ -8,6 +8,7 @@ namespace Barbar.HostsSwitcher
     static class Program
     {
         [SupportedOSPlatform("windows")]
+        [STAThread]
         static void Main()
         {
             Application.EnableVisualStyles();

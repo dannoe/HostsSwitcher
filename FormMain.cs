@@ -240,6 +240,12 @@ namespace Barbar.HostsSwitcher
 
         private void DebounceNetworkChange()
         {
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action(DebounceNetworkChange));
+                return;
+            }
+
             _networkChangeDebounceTimer.Stop();
             _networkChangeDebounceTimer.Start();
         }
