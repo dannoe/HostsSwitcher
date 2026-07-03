@@ -41,7 +41,8 @@ namespace Barbar.HostsSwitcher
                 quickSwitchToolStripMenuItem.DropDownItems.Add(host);
             }
 
-            Text = $"Hosts Switcher - v.{typeof(FormMain).Assembly.GetName().Version}";
+            Text = $"Hosts Switcher - v{ProductVersion}";
+
 
             NetworkChange.NetworkAddressChanged += OnNetworkAddressChanged;
             NetworkChange.NetworkAvailabilityChanged += OnNetworkAvailabilityChanged;
