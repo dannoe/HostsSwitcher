@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Globalization;
+using System.Runtime.Versioning;
 using System.Windows.Forms;
 using Barbar.HostsSwitcher.Provider;
 
 namespace Barbar.HostsSwitcher {
+  [SupportedOSPlatform("windows")]
   public partial class FormMain : Form {
     private readonly IHostProvider m_HostsProvider;
 

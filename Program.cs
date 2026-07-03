@@ -1,10 +1,13 @@
 ﻿using System;
+using System.Runtime.Versioning;
 using System.Threading;
 using System.Windows.Forms;
 
 namespace Barbar.HostsSwitcher {
   static class Program {
-    [STAThread]
+
+    [SupportedOSPlatform("windows")]
+
     static void Main() {
       Application.EnableVisualStyles();
       Application.SetCompatibleTextRenderingDefault(false);
