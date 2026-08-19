@@ -113,7 +113,7 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Install Nerdbank.GitVersioning
-        run: dotnet tool install --global nbgv --version 3.10.85
+        run: dotnet tool install --global nbgv
 
       - name: Set version variables
         shell: pwsh
@@ -200,7 +200,7 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Install Nerdbank.GitVersioning
-        run: dotnet tool install --global nbgv --version 3.10.85
+        run: dotnet tool install --global nbgv
 
       - name: Set version variables
         shell: pwsh
