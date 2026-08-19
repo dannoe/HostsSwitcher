@@ -132,8 +132,8 @@ namespace Barbar.HostsSwitcher
         {
             EnsureTrayIconVisible();
             WindowState = FormWindowState.Normal;
-            ShowInTaskbar = false;
             Hide();
+            ShowInTaskbar = false;
         }
 
         private void ShowMainWindow()
