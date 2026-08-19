@@ -15,10 +15,12 @@ namespace Barbar.HostsSwitcher
         private readonly IHostProvider _hostsProvider;
         private readonly IAutoHostsSwitcher _autoSwitcher;
         private readonly Timer _networkChangeDebounceTimer;
+        private readonly bool _startMinimized;
 
         public FormMain(bool startMinimized = false)
         {
             InitializeComponent();
+            _startMinimized = startMinimized;
 
             _hostsProvider = new HostProvider();
 
@@ -52,11 +54,22 @@ namespace Barbar.HostsSwitcher
             // Update autostart UI to reflect current state
             UpdateAutostartUI();
 
-            // Handle minimized startup (e.g., from autostart)
-            if (startMinimized)
+            EnsureTrayIconVisible();
+        }
+
+        protected override void OnShown(EventArgs e)
+        {
+            base.OnShown(e);
+
+            EnsureTrayIconVisible(refresh: true);
+
+            if (_startMinimized)
             {
-                WindowState = FormWindowState.Minimized;
-                Visible = false;
+                BeginInvoke(new Action(HideToTray));
+            }
+            else
+            {
+                ShowMainWindow();
             }
         }
 
@@ -97,7 +110,7 @@ namespace Barbar.HostsSwitcher
             if (e.CloseReason == CloseReason.UserClosing)
             {
                 e.Cancel = true;
-                this.Visible = false;
+                HideToTray();
             }
             else
             {
@@ -111,10 +124,40 @@ namespace Barbar.HostsSwitcher
         {
             if (e.Button == MouseButtons.Left)
             {
-                WindowState = FormWindowState.Normal;
-                this.Visible = true;
-                this.Focus();
+                ShowMainWindow();
             }
+        }
+
+        private void HideToTray()
+        {
+            EnsureTrayIconVisible();
+            WindowState = FormWindowState.Normal;
+            ShowInTaskbar = false;
+            Hide();
+        }
+
+        private void ShowMainWindow()
+        {
+            EnsureTrayIconVisible();
+            ShowInTaskbar = true;
+            WindowState = FormWindowState.Normal;
+            Show();
+            Activate();
+        }
+
+        private void EnsureTrayIconVisible(bool refresh = false)
+        {
+            if (notifyIcon == null)
+            {
+                return;
+            }
+
+            if (refresh && notifyIcon.Visible)
+            {
+                notifyIcon.Visible = false;
+            }
+
+            notifyIcon.Visible = true;
         }
 
         private void LogInfo(string format, params object[] args)
@@ -189,9 +232,7 @@ namespace Barbar.HostsSwitcher
 
         private void menuStripShow_Click(object sender, EventArgs e)
         {
-            WindowState = FormWindowState.Normal;
-            this.Visible = true;
-            this.Focus();
+            ShowMainWindow();
         }
 
         private void listHosts_DoubleClick(object sender, EventArgs e)
